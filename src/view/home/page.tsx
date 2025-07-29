@@ -3,6 +3,7 @@ import PopularEvents from "@/components/popularevents";
 import BrowseCategories from "@/components/browsecategories";
 import FilterTab from "@/components/filtertab";
 import EventGrid from "@/components/eventgrid";
+import Footer from "@/components/footer";
 
 export default function HomeView() {
   return (
@@ -12,6 +13,7 @@ export default function HomeView() {
          <BrowseCategories />
          <FilterTab />
          <EventGrid />
+         <Footer />
        </>
   );
 }
