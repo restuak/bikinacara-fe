@@ -1,29 +1,36 @@
 "use client";
 
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { FiSearch } from "react-icons/fi";
 
 export default function Navbar() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <nav className="w-full fixed top-0 left-0 bg-[#FFD522] shadow z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
-        {/* Logo */}
-        <div className="flex justify-between items-center w-full md:w-auto">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center space-x-10">
           <Link href="/" className="flex items-center space-x-2">
-            <Image
-              src="/Logo BikinAcara.png"
-              alt="Logo"
-              width={180}
-              height={60}
-              priority
-            />
+            <img src="/Logo BikinAcara.png" alt="Logo" className="h-8 w-auto" />
           </Link>
+
+          {isHome && (
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Cari acara..."
+                className="pl-10 pr-20 py-2 rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FF471F]"
+              />
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          )}
         </div>
 
-        {/* Navigation Links */}
+        {/* Kanan: Nav Menu */}
         <div className="space-x-6 hidden md:flex">
           <Link
             href="#"
