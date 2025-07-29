@@ -1,10 +1,17 @@
-import SearchBar from "@/components/searchbar";
+import Navbar from "@/components/navbar";
+import PopularEvents from "@/components/popularevents";
+import BrowseCategories from "@/components/browsecategories";
+import FilterTab from "@/components/filtertab";
+import EventGrid from "@/components/eventgrid";
 
 export default function HomeView() {
   return (
-    <main className="mt-20 px-4">
-      <div className="text-center mt-10">MAIN CONTENT LANDINGPAGE</div>
-      <footer className="text-center mt-20">FOOTER</footer>
-    </main>
+   <>
+         <Navbar />
+         <PopularEvents />
+         <BrowseCategories />
+         <FilterTab />
+         <EventGrid />
+       </>
   );
 }
