@@ -7,10 +7,13 @@ import {
   FaMapMarkerAlt,
   FaTag,
   FaImage,
+  FaTicketAlt,
+  FaMoneyBillAlt,
 } from "react-icons/fa";
 
 export default function CreateEventPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ticketType, setTicketType] = useState<"free" | "paid">("free");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,6 +36,26 @@ export default function CreateEventPage() {
           />
         </div>
 
+        {/* Upload Picture */}
+        <div>
+          <label className="block mb-1 font-medium flex items-center gap-2">
+            <FaImage /> Upload Banner
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full border rounded p-2"
+          />
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="mt-2 rounded-md max-h-48 object-cover"
+            />
+          )}
+        </div>
+
         {/* Description */}
         <div>
           <label className="block mb-1 font-medium">Description</label>
@@ -42,6 +65,49 @@ export default function CreateEventPage() {
             placeholder="Event details..."
           />
         </div>
+
+        {/* Ticket Type */}
+        <div>
+          <label className="block mb-1 font-medium flex items-center gap-2">
+            <FaTicketAlt /> Ticket Type
+          </label>
+          <div className="flex space-x-4">
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="ticketType"
+                value="free"
+                checked={ticketType === "free"}
+                onChange={() => setTicketType("free")}
+              />
+              Free
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="ticketType"
+                value="paid"
+                checked={ticketType === "paid"}
+                onChange={() => setTicketType("paid")}
+              />
+              Paid
+            </label>
+          </div>
+        </div>
+
+        {/* Ticket Price (only if paid) */}
+        {ticketType === "paid" && (
+          <div>
+            <label className="block mb-1 font-medium flex items-center gap-2">
+              <FaMoneyBillAlt /> Ticket Price (in IDR)
+            </label>
+            <input
+              type="number"
+              className="w-full border rounded p-2"
+              placeholder="e.g., 50000"
+            />
+          </div>
+        )}
 
         {/* Date */}
         <div>
@@ -91,26 +157,6 @@ export default function CreateEventPage() {
             className="w-full border rounded p-2"
             placeholder="e.g., 100"
           />
-        </div>
-
-        {/* Upload Picture */}
-        <div>
-          <label className="block mb-1 font-medium flex items-center gap-2">
-            <FaImage /> Upload Banner
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full border rounded p-2"
-          />
-          {imagePreview && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="mt-2 rounded-md max-h-48 object-cover"
-            />
-          )}
         </div>
 
         {/* Submit */}
