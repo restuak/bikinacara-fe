@@ -30,7 +30,7 @@ export default function PopularEvents() {
   return (
     <section className="bg-white py-10 px-6 mt-24">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Event Populer</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Upcoming Events</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {events.map((event) => (
             <div
