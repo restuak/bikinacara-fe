@@ -1,5 +1,6 @@
 "use client";
 
+import PromoSection from "@/components/promotion/promosection";
 import { useState } from "react";
 import {
   FaCalendarAlt,
@@ -158,6 +159,9 @@ export default function CreateEventPage() {
             placeholder="e.g., 100"
           />
         </div>
+
+        {/* Promo Section */}
+        <PromoSection />
 
         {/* Submit */}
         <div className="text-center">
