@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FiSearch, FiLogIn, FiLogOut } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { FiSearch, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
+import { useEffect, useRef, useState } from "react";
+import { UserData } from "@/lib/user";
 
-interface UserData {
-  name: string;
-  role: string;
-}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -17,6 +14,9 @@ export default function Navbar() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -44,10 +44,25 @@ export default function Navbar() {
     router.push("/");
   };
 
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <nav className="w-full fixed top-0 left-0 bg-[#FFD522] shadow z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Logo & Search */}
+       
         <div className="flex items-center space-x-4 sm:space-x-10">
           <Link href="/" className="flex items-center space-x-2">
             <img src="/Logo BikinAcara.png" alt="Logo" className="h-8 w-auto" />
@@ -65,21 +80,21 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Kanan: Auth Buttons & User */}
-        <div className="flex items-center space-x-4 text-sm">
+      
+        <div
+          className="flex items-center space-x-4 text-sm relative"
+          ref={dropdownRef}
+        >
           {!isAuthenticated ? (
             <Link
               href="/auth"
               className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-semibold hover:bg-[#e13f1a] hover:text-white transition"
             >
-              <FiLogIn className="text-lg" /> 
+              <FiLogIn className="text-lg" /> Login
             </Link>
           ) : (
             <>
-              <span className="hidden sm:block font-semibold">
-                Halo, {user?.name}
-              </span>
-              {user?.role === "organizer" && (
+              {user?.role === "ORGANIZER" && (
                 <Link
                   href="/create-event"
                   className="bg-[#FF471F] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#e13f1a] transition"
@@ -87,12 +102,44 @@ export default function Navbar() {
                   Create Event
                 </Link>
               )}
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-semibold hover:bg-red-600 hover:text-white transition"
-              >
-                <FiLogOut className="text-lg" /> Logout
-              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-black hover:bg-gray-200 transition"
+                >
+                  <FiUser className="text-xl" />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50">
+                    {user?.role === "ATTENDEE" && (
+                      <Link
+                        href="/profile"
+                        className="block px-4 py-2 text-sm hover:bg-gray-100"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                    )}
+                    {user?.role === "ORGANIZER" && (
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm hover:bg-gray-100"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      <FiLogOut className="inline mr-2" /> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
