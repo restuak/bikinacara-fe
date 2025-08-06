@@ -72,7 +72,7 @@ export default function Navbar() {
             <div className="relative hidden sm:block">
               <input
                 type="text"
-                placeholder="Cari acara..."
+                placeholder="Search for events..."
                 className="pl-10 pr-20 py-2 rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FF471F]"
               />
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -96,7 +96,7 @@ export default function Navbar() {
             <>
               {user?.role === "ORGANIZER" && (
                 <Link
-                  href="/create-event"
+                  href="/event/create"
                   className="bg-[#FF471F] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#e13f1a] transition"
                 >
                   Create Event
