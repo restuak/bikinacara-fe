@@ -8,7 +8,7 @@ import { User, Users } from "lucide-react";
 export default function SelectRolePage() {
   const router = useRouter();
 
-  const handleSelectRole = (role: "attendee" | "organizer") => {
+  const handleSelectRole = (role: "ATTENDEE" | "ORGANIZER") => {
     router.push(`/auth/login?role=${role}`);
   };
 
@@ -22,21 +22,21 @@ export default function SelectRolePage() {
           <Button
             variant="outline"
             className="flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
-            onClick={() => handleSelectRole("attendee")}
+            onClick={() => handleSelectRole("ATTENDEE")}
           >
             <User className="w-10 h-10 mb-2 text-yellow-500" />
             <span className="text-lg font-semibold text-gray-700">
-              Attendee/Guest
+              CUSTOMER
             </span>
           </Button>
           <Button
             variant="outline"
             className="flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
-            onClick={() => handleSelectRole("organizer")}
+            onClick={() => handleSelectRole("ORGANIZER")}
           >
             <Users className="w-10 h-10 mb-2 text-yellow-500" />
             <span className="text-lg font-semibold text-gray-700">
-              Event Organizer
+              EVENT ORGANIZER
             </span>
           </Button>
         </div>

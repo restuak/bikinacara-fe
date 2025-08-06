@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAttendeeStats } from "@/app/dashboard/services/statisticService";
+import { getAttendeeStats } from "@/services/statisticService";
 
 type Stats = {
   totalEvents: number;
