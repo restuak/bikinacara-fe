@@ -9,7 +9,6 @@ import { Eye, EyeOff } from "lucide-react";
 import RegisterSchema from "./regisschema";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "ATTENDEE";
 
@@ -33,7 +32,7 @@ export default function RegisterPage() {
           email: values.email,
           password: values.password,
           role,
-          referralCode: values.referral,
+          referralCode: values.referral || undefined,
         });
 
         const code = response.user?.referralCode || "";
