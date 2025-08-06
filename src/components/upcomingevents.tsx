@@ -3,11 +3,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function UpcomingEvents() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const today = new Date().toISOString();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -27,8 +28,6 @@ export default function UpcomingEvents() {
     fetchEvents();
   }, []);
 
-  console.log(events);
-
   return (
     <section className="bg-white py-10 px-6 mt-24">
       <div className="max-w-7xl mx-auto">
@@ -42,7 +41,8 @@ export default function UpcomingEvents() {
             {events.map((event) => (
               <div
                 key={event.id}
-                className="rounded-xl overflow-hidden shadow-md hover:shadow-xl transition transform hover:-translate-y-1 bg-white"
+                onClick={() => router.push(`/events/${event.id}`)}
+                className="cursor-pointer rounded-xl overflow-hidden shadow-md hover:shadow-xl transition transform hover:-translate-y-1 bg-white"
               >
                 <Image
                   src={event.image ?? "/default.jpg"}

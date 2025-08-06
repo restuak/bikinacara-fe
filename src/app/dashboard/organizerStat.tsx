@@ -1,25 +1,24 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAttendeeStats } from "@/services/statisticService";
+import { getOrganizerStats } from "@/services/statisticService";
 type Stats = {
   totalEvents: number;
-  totalTickets: number;
-  totalSpent: number;
+  totalRevenue: number;
+  totalTicketsSold: number;
   transactionsCount: number;
 };
 
-export default function AttendeeStats() {
+export default function OrganizerStats() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await getAttendeeStats();
+        const data = await getOrganizerStats();
         setStats(data);
       } catch (err) {
-        console.error("Failed to load stats:", err);
+        console.error("Failed to load organizer stats:", err);
       }
     };
     fetchStats();
@@ -29,12 +28,9 @@ export default function AttendeeStats() {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-      <Card title="Total Events" value={stats.totalEvents} />
-      <Card title="Total Tickets" value={stats.totalTickets} />
-      <Card
-        title="Total Spent (IDR)"
-        value={stats.totalSpent.toLocaleString()}
-      />
+      <Card title="Events" value={stats.totalEvents} />
+      <Card title="Revenue (IDR)" value={stats.totalRevenue.toLocaleString()} />
+      <Card title="Tickets Sold" value={stats.totalTicketsSold} />
       <Card title="Transactions" value={stats.transactionsCount} />
     </div>
   );
@@ -43,6 +39,6 @@ export default function AttendeeStats() {
 const Card = ({ title, value }: { title: string; value: number | string }) => (
   <div className="bg-white rounded-2xl shadow p-4 text-center">
     <h3 className="text-lg font-semibold">{title}</h3>
-    <p className="text-2xl mt-2 font-bold text-indigo-600">{value}</p>
+    <p className="text-2xl mt-2 font-bold text-green-600">{value}</p>
   </div>
 );
