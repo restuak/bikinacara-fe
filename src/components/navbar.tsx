@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FiSearch, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
-import { UserData } from "@/lib/user";
-
+import { UserData } from "@/interface/user";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -44,7 +43,6 @@ export default function Navbar() {
     router.push("/");
   };
 
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -62,7 +60,6 @@ export default function Navbar() {
   return (
     <nav className="w-full fixed top-0 left-0 bg-[#FFD522] shadow z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-       
         <div className="flex items-center space-x-4 sm:space-x-10">
           <Link href="/" className="flex items-center space-x-2">
             <img src="/Logo BikinAcara.png" alt="Logo" className="h-8 w-auto" />
@@ -80,7 +77,6 @@ export default function Navbar() {
           )}
         </div>
 
-      
         <div
           className="flex items-center space-x-4 text-sm relative"
           ref={dropdownRef}

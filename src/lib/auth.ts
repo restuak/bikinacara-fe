@@ -30,7 +30,8 @@ export async function registerUser(data: {
   email: string;
   password: string;
   role: string;
-  referralCode: string | null;
+  referralCode?: string;
+  referredBy?: string;
 }) {
   try {
     const response = await axios.post(`${API}/register`, data);
