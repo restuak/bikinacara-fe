@@ -1,5 +1,4 @@
 import Navbar from "@/components/navbar";
-import PopularEvents from "@/components/upcomingevents";
 import BrowseCategories from "@/components/browsecategories";
 import FilterTab from "@/components/filtertab";
 import EventGrid from "@/components/eventgrid";

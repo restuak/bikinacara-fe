@@ -96,7 +96,7 @@ export default function Navbar() {
             <>
               {user?.role === "ORGANIZER" && (
                 <Link
-                  href="/create-event"
+                  href="/event/create"
                   className="bg-[#FF471F] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#e13f1a] transition"
                 >
                   Create Event
