@@ -13,7 +13,7 @@ export async function loginUser(data: {
     const response = await axios.post(`${API}/login`, data);
     const { token, user } = response.data;
 
-    // Simpan token dan data user di localStorage
+
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
@@ -30,6 +30,7 @@ export async function registerUser(data: {
   email: string;
   password: string;
   role: string;
+  referralCode: string | null;
 }) {
   try {
     const response = await axios.post(`${API}/register`, data);
