@@ -2,7 +2,6 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function UpcomingEvents() {
@@ -14,7 +13,7 @@ export default function UpcomingEvents() {
     const fetchEvents = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/api/events/upcoming"
+          "http://localhost:8080/api/events/upcoming?limit=3"
         );
 
         setEvents(response.data || []);
@@ -38,13 +37,13 @@ export default function UpcomingEvents() {
           <p className="text-gray-500">Loading events...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
+            {events.slice(0, 3).map((event) => (
               <div
                 key={event.id}
-                onClick={() => router.push(`/events/${event.id}`)}
+                onClick={() => router.push(`/eventdetails/${event.id}`)}
                 className="cursor-pointer rounded-xl overflow-hidden shadow-md hover:shadow-xl transition transform hover:-translate-y-1 bg-white"
               >
-                <Image
+                <img
                   src={event.image ?? "/default.jpg"}
                   alt={event.title}
                   width={400}
