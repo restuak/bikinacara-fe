@@ -18,23 +18,23 @@ export default function SelectRolePage() {
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
           Choose Your Intention
         </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className=" grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Button
             variant="outline"
-            className="flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
+            className="cursor-pointer flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
             onClick={() => handleSelectRole("ATTENDEE")}
           >
-            <User className="w-10 h-10 mb-2 text-yellow-500" />
+            <User className="size-10 mb-2 text-yellow-500" />
             <span className="text-lg font-semibold text-gray-700">
               CUSTOMER
             </span>
           </Button>
           <Button
             variant="outline"
-            className="flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
+            className="cursor-pointer flex flex-col items-center justify-center h-40 border-2 border-yellow-400 rounded-lg hover:bg-yellow-100"
             onClick={() => handleSelectRole("ORGANIZER")}
           >
-            <Users className="w-10 h-10 mb-2 text-yellow-500" />
+            <Users className="size-10  mb-2 text-yellow-500" />
             <span className="text-lg font-semibold text-gray-700">
               EVENT ORGANIZER
             </span>
