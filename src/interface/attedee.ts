@@ -1,14 +1,16 @@
 export interface AttendeeStats {
+  transactionsCount: number;
   totalEvents: number;
   totalTickets: number;
   totalSpent: number;
-  transactionsCount: number;
 }
 
-export interface UserDetail {
+export interface UserInfoAttendee {
   id: string;
   name: string;
   email: string;
-  role: "ATTENDEE" | "ORGANIZER";
+  role: string;
   profilePic?: string;
+  referralCode?: string;
+  pointBalance?: number;
 }
