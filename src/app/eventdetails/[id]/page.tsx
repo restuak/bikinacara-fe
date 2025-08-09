@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type Event = {
   id: string;
@@ -15,6 +16,7 @@ type Event = {
 
 const EventDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,14 +75,14 @@ const EventDetailPage = () => {
         <Image
           src={event.image_url || "/default.jpg"}
           alt={event.title}
-          layout="fill"
+          fill
           className="object-cover"
           priority
         />
       </div>
 
       <button
-        onClick={() => alert("Redirect to ticket page or open modal")}
+        onClick={() => event?.id && router.push(`/transactions/${event.id}`)}
         className="w-full bg-[#FFD522] hover:bg-black text-black hover:text-white font-semibold py-3 rounded-lg shadow-md transition duration-200"
       >
         Buy Tickets
