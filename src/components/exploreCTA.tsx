@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function ExploreCTA() {
   return (
     <section className="bg-[#FFD522] text-black py-12 px-4 text-center rounded-xl mt-12 mx-auto max-w-4xl">
-      <h2 className="text-2xl md:text-3xl font-semibold mb-4">
+      <h2 className="text-2xl md:text-3xl font-bold mb-4">
         Ready to explore all the experiences available for you?
       </h2>
       <Link

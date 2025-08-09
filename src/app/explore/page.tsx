@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import debounce from "lodash/debounce";
 
@@ -11,15 +11,27 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchEvents = useCallback(async (query: string, pageNum: number) => {
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [location, setLocation] = useState("");
+  const [eventType, setEventType] = useState("");
+
+  // Fetch events function
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:8080/api/events?page=${pageNum}&limit=${LIMIT}&search=${query}`
-      );
+      const url = new URL("http://localhost:8080/api/events/filter");
+      url.searchParams.append("page", page.toString());
+      url.searchParams.append("limit", LIMIT.toString());
+      if (title) url.searchParams.append("title", title);
+      if (category) url.searchParams.append("category", category);
+      if (location) url.searchParams.append("location", location);
+      if (eventType) url.searchParams.append("eventType", eventType);
+
+      const res = await fetch(url.toString());
       const data = await res.json();
+
       setEvents(data.events || []);
       setTotalPages(data.totalPages || 1);
     } catch (error) {
@@ -27,22 +39,50 @@ export default function ExplorePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [title, page, category, location, eventType]);
 
-  // Debounced function
-  const debouncedFetch = useCallback(
-    debounce((query: string, pageNum: number) => {
-      fetchEvents(query, pageNum);
-    }, 500),
+  // Debounce function to update title and reset page
+  const debouncedSetTitle = useMemo(
+    () =>
+      debounce((value: string) => {
+        setTitle(value);
+        setPage(1);
+      }, 500),
     []
   );
 
-  useEffect(() => {
-    debouncedFetch(searchTerm, page);
-  }, [searchTerm, page, debouncedFetch]);
+  // Handle input change, call debounce
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSetTitle(e.target.value);
+  };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  // Whenever title (after debounce), page, or filters change, fetch events
+  useEffect(() => {
+    if (title.length === 0 || title.length >= 3) {
+      fetchEvents();
+    }
+  }, [title, page, category, location, eventType, fetchEvents]);
+
+  // Cancel debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSetTitle.cancel();
+    };
+  }, [debouncedSetTitle]);
+
+  // Handlers for other filters — reset page too
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
+    setPage(1);
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocation(e.target.value);
+    setPage(1);
+  };
+
+  const handleEventTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setEventType(e.target.value);
     setPage(1);
   };
 
@@ -54,18 +94,50 @@ export default function ExplorePage() {
           Find the latest and trending events around you!
         </p>
 
-        {/* Search Bar */}
-        <div className="mt-4 max-w-md mx-auto">
+        {/* Search & Filter */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
           <input
             type="text"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFD522]"
+            placeholder="Search by title..."
+            defaultValue={title}
+            onChange={handleTitleChange}
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FFD522]"
           />
+          <select
+            value={category}
+            onChange={handleCategoryChange}
+            className="px-4 py-2 border border-gray-300 rounded-md"
+          >
+            <option value="">All Categories</option>
+            <option value="MUSIC">Music</option>
+            <option value="NIGHTLIFE">Nightlife</option>
+            <option value="ARTS">Arts</option>
+            <option value="HOLIDAYS">Holiday</option>
+            <option value="EDUCATION">Education</option>
+            <option value="HOBBIES">Hobbies</option>
+            <option value="BUSINESS">Business</option>
+            <option value="FOOD_AND_DRINK">Food & Drink</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Location..."
+            value={location}
+            onChange={handleLocationChange}
+            className="px-4 py-2 border border-gray-300 rounded-md"
+          />
+          <select
+            value={eventType}
+            onChange={handleEventTypeChange}
+            className="px-4 py-2 border border-gray-300 rounded-md"
+          >
+            <option value="">All Types</option>
+            <option value="FREE">Free</option>
+            <option value="PAID">Paid</option>
+          </select>
         </div>
       </div>
 
+      {/* Event List */}
       {loading ? (
         <p className="text-center text-gray-500">Loading events...</p>
       ) : (
@@ -107,7 +179,7 @@ export default function ExplorePage() {
             <button
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page === 1}
-              className="px-4 py-2 text-sm bg-[#FFD522] hover:bg-black rounded-md hover:text-white"
+              className="px-4 py-2 text-sm bg-[#FFD522] hover:bg-black rounded-md hover:text-white disabled:opacity-50"
             >
               Previous
             </button>
@@ -127,7 +199,7 @@ export default function ExplorePage() {
             <button
               onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={page === totalPages}
-              className="px-4 py-2 text-sm bg-[#FFD522] hover:bg-black rounded-md hover:text-white"
+              className="px-4 py-2 text-sm bg-[#FFD522] hover:bg-black rounded-md hover:text-white disabled:opacity-50"
             >
               Next
             </button>
