@@ -12,5 +12,5 @@ export interface UserInfoAttendee {
   role: string;
   profilePic?: string;
   referralCode?: string;
-  pointBalance?: number;
+  pointsBalance?: number;
 }

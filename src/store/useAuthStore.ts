@@ -1,44 +1,36 @@
-// import { create } from "zustand";
-// import { createJSONStorage, persist } from "zustand/middleware";
-// import { User } from "@/features/user/type";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { UserAuth } from "@/interface/userauth";
 
-// type AuthState = {
-//   user: User | null;
-//   isLogin: boolean;
-//   todos: string[];
-// };
+type AuthState = {
+  user: UserAuth | null;
+};
 
-// type AuthActions = {
-//   onAuthSuccess: (user: User | null) => void;
-//   onAddTodos: (todo: string[]) => void;
-//   clearAuth: () => void;
-// };
+type AuthActions = {
+  onSuccess: (user?: UserAuth | null) => void;
+  clearAuth: () => void;
+};
 
-// type AuthStore = AuthState & AuthActions;
+type AuthStore = AuthState & AuthActions;
 
-// const useAuthStore = create<
-//   AuthStore,
-//   [["zustand/persist", Pick<AuthStore, "user">]]
-// >(
-//   persist(
-//     (set) => ({
-//       user: null,
-//       isLogin: false,
-//       todos: [],
-//       onAuthSuccess: (payload) => set(() => ({ user: payload, isLogin: true })),
-//       onAddTodos: (payload) => set(() => ({ todos: payload })),
-//       clearAuth: () => set(() => ({ user: null, isLogin: false })),
-//     }),
-//     {
-//       name: "user-storage",
-//       storage: createJSONStorage(() => sessionStorage),
-//       partialize: (state) => ({
-//         user: state.user,
-//         isLogin: state.isLogin,
-//         todos: state.todos,
-//       }),
-//     }
-//   )
-// );
+const useAuthStore = create<
+  AuthStore,
+  [["zustand/persist", Pick<AuthStore, "user">]]
+>(
+  persist(
+    (set) => ({
+      user: null,
+      onSuccess: (payload) => set(() => ({ user: payload })),
+      clearAuth: () => set(() => ({ user: null })),
+    }),
+    {
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        user: state.user,
+      }),
+    }
+  )
+);
 
-// export default useAuthStore;
+export default useAuthStore;

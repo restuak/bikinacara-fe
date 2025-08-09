@@ -89,7 +89,7 @@ export default function AttendeeProfilePage() {
           <div>
             <p className="text-gray-500 text-sm">Point Balance</p>
             <p className="text-lg font-bold text-black">
-              {user?.pointBalance?.toLocaleString() ?? "0"} pts
+              {user?.pointsBalance?.toLocaleString() ?? "0"} pts
             </p>
           </div>
         </div>

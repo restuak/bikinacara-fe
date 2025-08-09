@@ -12,11 +12,7 @@ import {
   Bar,
   ResponsiveContainer,
 } from "recharts";
-import {
-  DashboardEvent,
-  StatisticData,
-  UserInfo,
-} from "@/interface/dashboard";
+import { DashboardEvent, StatisticData } from "@/interface/dashboard";
 import {
   CalendarDaysIcon,
   BarChart3Icon,
@@ -25,35 +21,38 @@ import {
   BadgeDollarSign,
   Star,
 } from "lucide-react";
+import useAuthStore from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 const API_URL = "http://localhost:8080/api";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const token = user?.token; 
+  const role = user?.role; 
+
   const [tab, setTab] = useState("events");
   const [events, setEvents] = useState<DashboardEvent[]>([]);
   const [yearlyStats, setYearlyStats] = useState<StatisticData[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<StatisticData[]>([]);
-  const [user, setUser] = useState<UserInfo | null>(null);
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
+  // Cek role sebelum load data
   useEffect(() => {
-    if (!token) return;
-    fetchUser();
+    if (!token) {
+      router.push("/");
+      return;
+    }
+    if (role !== "ORGANIZER") {
+      router.push("/forbidden");
+      return;
+    }
     fetchEvents();
     fetchYearly();
     fetchMonthly();
-  }, [token, year, month]);
-
-  const fetchUser = async () => {
-    const res = await axios.get(`${API_URL}/users/detail`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setUser(res.data);
-  };
+  }, [token, role, year, month]);
 
   const fetchEvents = async () => {
     const res = await axios.get(`${API_URL}/dashboard/organizer`, {
@@ -112,6 +111,7 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b overflow-x-auto">
         {tabs.map((t) => (
           <button
@@ -130,6 +130,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Events */}
       {tab === "events" && (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
@@ -160,6 +161,7 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Yearly */}
       {tab === "yearly" && (
         <div className="mt-4">
           <h2 className="text-lg font-bold text-[#000000] mb-2">
@@ -182,6 +184,7 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Monthly */}
       {tab === "monthly" && (
         <div className="mt-4">
           <div className="flex gap-4 mb-4 flex-wrap">
