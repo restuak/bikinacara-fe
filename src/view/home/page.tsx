@@ -7,9 +7,11 @@ import ExploreCTA from "@/components/exploreCTA";
 export default function HomeView() {
   return (
     <>
+      <Navbar />
       <ExploreCTA />
       <UpcomingEvents />
       <BrowseCategories />
+      <Footer />
     </>
   );
 }

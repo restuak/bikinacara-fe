@@ -128,7 +128,7 @@ export default function AttendeeProfilePage() {
           <div>
             <p className="text-gray-500 text-sm">Total Spent</p>
             <p className="text-lg font-bold text-black">
-              Rp {stats?.totalSpent.toLocaleString() ?? "-"}
+              Rp {(stats?.totalSpent ?? 0).toLocaleString("id-ID")}
             </p>
           </div>
         </div>
