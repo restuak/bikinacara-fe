@@ -4,61 +4,33 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FiSearch, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
 import { useEffect, useRef, useState } from "react";
-import { UserData } from "@/interface/user";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const isHome = pathname === "/";
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [mounted, setMounted] = useState(false);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
+  const isAuthenticated = !!user;
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    if (token && userData) {
-      try {
-        const parsedUser: UserData = JSON.parse(userData);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (err) {
-        console.error("Failed to parse user data");
-        localStorage.removeItem("user");
-        setIsAuthenticated(false);
-      }
-    } else {
-      setIsAuthenticated(false);
-    }
+    setMounted(true);
   }, []);
 
+  if (!mounted) return null;
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setIsAuthenticated(false);
+    clearAuth();
     router.push("/");
   };
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <nav className="w-full fixed top-0 left-0 bg-[#FFD522] shadow z-50">
+    <div className="w-full fixed top-0 left-0 bg-[#FFD522] shadow z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-4 sm:space-x-10">
           <Link href="/" className="flex items-center space-x-2">
@@ -140,6 +112,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </div>
   );
 }

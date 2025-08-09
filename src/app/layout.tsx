@@ -26,13 +26,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Navbar />
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Navbar />
         <main className="pt-16">{children}</main>
+        <Footer />
       </body>
-      <Footer />
     </html>
   );
 }

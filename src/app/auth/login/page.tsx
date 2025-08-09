@@ -7,20 +7,50 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Eye, EyeOff } from "lucide-react";
 import LoginSchema from "./loginschema";
 import { loginUser } from "@/lib/auth";
+import useAuthStore from "@/store/useAuthStore";
+import { UserAuth } from "@/interface/userauth";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "ATTENDEE";
+  const role =
+    (searchParams.get("role") as "ATTENDEE" | "ORGANIZER") || "ATTENDEE";
+
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (values: any) => {
+
+  const onSuccess = useAuthStore((state) => state.onSuccess);
+  const handleSubmit = async (values: { email: string; password: string }) => {
     try {
-      await loginUser({ email: values.email, password: values.password, role });
+      setError("");
+
+
+      const res = await loginUser({
+        email: values.email,
+        password: values.password,
+        role,
+      });
+
+ 
+      const userData: UserAuth = {
+        id: res.user.id,
+        name: res.user.name,
+        email: res.user.email,
+        role: res.user.role,
+        token: res.token,
+        profilePic: res.user.profilePic || "",
+      };
+
+
+      onSuccess(userData);
+
+
       router.push("/");
-    } catch (err) {
-      setError("Login failed");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || "Login failed. Please try again.";
+      setError(message);
     }
   };
 
