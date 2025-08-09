@@ -5,23 +5,33 @@ import axios from "axios";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { UserCircle, Ticket, CalendarDays, DollarSign } from "lucide-react";
 
-import { AttendeeStats } from "@/interface/attedee";
-import { UserInfoAttendee } from "@/interface/attedee";
+import { AttendeeStats, UserInfoAttendee } from "@/interface/attedee";
+import useAuthStore from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 const API_URL = "http://localhost:8080/api";
 
 export default function AttendeeProfilePage() {
-  const [stats, setStats] = useState<AttendeeStats | null>(null);
-  const [user, setUser] = useState<UserInfoAttendee | null>(null);
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const token = user?.token;
+  const role = user?.role;
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const [stats, setStats] = useState<AttendeeStats | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfoAttendee | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      router.push("/");
+      return;
+    }
+    if (role !== "ATTENDEE") {
+      router.push("/forbidden");
+      return;
+    }
     fetchUser();
     fetchStats();
-  }, [token]);
+  }, [token, role]);
 
   const fetchStats = async () => {
     try {
@@ -39,7 +49,7 @@ export default function AttendeeProfilePage() {
       const res = await axios.get<UserInfoAttendee>(`${API_URL}/users/detail`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser(res.data);
+      setUserInfo(res.data);
     } catch (error) {
       console.error("Failed to fetch user", error);
     }
@@ -49,7 +59,7 @@ export default function AttendeeProfilePage() {
     ? [
         { name: "Events", value: stats.totalEvents },
         { name: "Tickets", value: stats.totalTickets },
-        { name: "Spent", value: stats.totalSpent },
+        { name: "Transactions", value: stats.transactionsCount },
       ]
     : [];
 
@@ -58,29 +68,31 @@ export default function AttendeeProfilePage() {
   return (
     <div className="max-w-4xl mx-auto p-6 font-nunito">
       {/* PROFILE CARD */}
-      {user && (
+      {userInfo && (
         <div className="mb-6 text-center">
-          {user.profilePic && (
+          {userInfo.profilePic && (
             <img
-              src={user.profilePic}
+              src={userInfo.profilePic}
               alt="Profile"
               className="w-24 h-24 rounded-full mx-auto mb-2 object-cover"
             />
           )}
           <h1 className="text-3xl font-extrabold text-[#000000]">
-            {user.name}
+            {userInfo.name}
           </h1>
-          <p className="text-[#545454] text-sm">{user.role}</p>
-          <p className="text-[#a6a6a6] text-sm">{user.email}</p>
+          <p className="text-[#545454] text-sm">{userInfo.role}</p>
+          <p className="text-[#a6a6a6] text-sm">{userInfo.email}</p>
         </div>
       )}
+
+      {/* REFERRAL & POINT */}
       <div className="container mx-auto grid grid-cols-2 sm:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
           <UserCircle className="w-8 h-8 text-purple-500" />
           <div>
             <p className="text-gray-500 text-sm">Referral Code</p>
             <p className="text-lg font-bold text-black">
-              {user?.referralCode ?? "-"}
+              {userInfo?.referralCode ?? "-"}
             </p>
           </div>
         </div>
@@ -89,12 +101,13 @@ export default function AttendeeProfilePage() {
           <div>
             <p className="text-gray-500 text-sm">Point Balance</p>
             <p className="text-lg font-bold text-black">
-              {user?.pointBalance?.toLocaleString() ?? "0"} pts
+              {userInfo?.pointsBalance ?? "0"} pts
             </p>
           </div>
         </div>
       </div>
 
+      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
           <UserCircle className="w-8 h-8 text-[#FF471F]" />
@@ -128,12 +141,13 @@ export default function AttendeeProfilePage() {
           <div>
             <p className="text-gray-500 text-sm">Total Spent</p>
             <p className="text-lg font-bold text-black">
-              Rp {stats?.totalSpent.toLocaleString() ?? "-"}
+              Rp {stats?.totalSpent?.toLocaleString() ?? "-"}
             </p>
           </div>
         </div>
       </div>
 
+      {/* CHART */}
       <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
         <h2 className="text-xl font-semibold mb-4 text-[#000000]">
           Summary Chart
