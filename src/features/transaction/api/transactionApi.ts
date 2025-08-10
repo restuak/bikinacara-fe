@@ -11,9 +11,10 @@ export const createTransaction = async (payload: {
   if (!user?.token) throw new Error("No token found");
 
   const res = await axios.post(
-    "$http://localhost:8080/api/transactions",
+    "http://localhost:8080/api/transactions",
     payload,
     { headers: { Authorization: `Bearer ${user.token}` } }
   );
-  return res.data;
+
+  return res.data.data;
 };
