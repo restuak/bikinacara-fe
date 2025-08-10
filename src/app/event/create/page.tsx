@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import useAuthStore from "@/store/useAuthStore";
+import ForbiddenPage from "@/app/forbidden/page";
 import PromoSection from "@/components/promotion/promosection";
 import {
   FaCalendarAlt,
@@ -13,6 +15,12 @@ import {
 } from "react-icons/fa";
 
 export default function CreateEventPage() {
+  const { user } = useAuthStore();
+
+  if (!user?.token) {
+    return <ForbiddenPage />;
+  }
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -54,25 +62,28 @@ export default function CreateEventPage() {
     e.preventDefault();
 
     const formData = new FormData();
-     formData.append("title", form.title);
-     formData.append("description", form.description);
-     formData.append("date", new Date(form.date).toISOString());
-     formData.append("time", new Date(`1970-01-01T${form.time}`).toISOString());
-     formData.append("location", form.location);
-     formData.append("eventCategory", form.eventCategory);
-     formData.append("totalSeats", String(form.totalSeats));
-     formData.append("eventType", form.ticketType.toUpperCase());
-     formData.append("ticketPrice", String(form.ticketPrice));
-     formData.append("organizerId", "7ea282b8-179e-4055-ba2a-65e84aafa4e6");
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("date", new Date(form.date).toISOString());
+    formData.append("time", new Date(`1970-01-01T${form.time}`).toISOString());
+    formData.append("location", form.location);
+    formData.append("eventCategory", form.eventCategory);
+    formData.append("totalSeats", String(form.totalSeats));
+    formData.append("eventType", form.ticketType.toUpperCase());
+    formData.append("ticketPrice", String(form.ticketPrice));
+    formData.append("organizerId", user.id);
 
-     if (image) {
-       formData.append("image", image);
-     }
+    if (image) {
+      formData.append("image", image);
+    }
 
-     const res = await fetch("http://localhost:8080/api/events", {
-       method: "POST",
-       body: formData,
-     });
+    const res = await fetch("http://localhost:8080/api/events", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`, 
+      },
+      body: formData,
+    });
 
     const data = await res.json();
     console.log(data);

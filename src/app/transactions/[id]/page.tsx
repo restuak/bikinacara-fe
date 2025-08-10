@@ -1,74 +1,54 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createTransaction } from "@/features/transaction/api/transactionApi";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import axios from "axios";
+import useAuthStore from "@/store/useAuthStore";
+import { createTransaction } from "@/features/transaction/api/transactionApi";
+import ForbiddenPage from "@/app/forbidden/page";
 
 export default function TransactionPage() {
   const { id: eventId } = useParams();
   const router = useRouter();
-
+  const { user } = useAuthStore();
   const [event, setEvent] = useState<any>(null);
-  const [ticketTypeId, setTicketTypeId] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [usePoints, setUsePoints] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Fetch event details
+  if (!user?.token) {
+    return <ForbiddenPage />;
+  }
+
   const fetchEvent = useCallback(async () => {
+    if (!eventId) return;
     try {
       const { data } = await axios.get(
         `http://localhost:8080/api/events/${eventId}`
       );
       setEvent(data);
     } catch (err) {
-      console.error("Failed to load event:", err);
-      alert("Failed to load event details. Please try again.");
+      console.error(err);
+      alert("Failed to load event");
     }
   }, [eventId]);
 
   useEffect(() => {
-    if (eventId) fetchEvent();
-  }, [eventId, fetchEvent]);
+    fetchEvent();
+  }, [fetchEvent]);
 
-  // Handle transaction submit
-  const handlePurchase = async () => {
-    if (!ticketTypeId || quantity < 1) {
-      return alert("Please select ticket type and quantity");
-    }
+  if (!event) return <p className="p-6">Loading event...</p>;
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      return alert("You must be logged in to purchase tickets.");
-    }
+  const minPrice = event.tickets?.length
+    ? Math.min(...event.tickets.map((t: any) => t.price))
+    : null;
 
-    setLoading(true);
-    try {
-      await createTransaction(token, {
-        eventId: String(eventId),
-        ticketTypeId,
-        quantity,
-        usePoints,
-      });
-
-      alert("Transaction successful!");
-      router.push("/profile");
-    } catch (err: any) {
-      console.error("Purchase error:", err);
-      alert(err?.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!event) return <p className="p-6">Loading event details...</p>;
-
-  // Hitung harga termurah
-  const minPrice =
-    event.tickets?.length > 0
-      ? Math.min(...event.tickets.map((t: any) => t.price))
-      : null;
+  const validationSchema = Yup.object({
+    ticketTypeId: Yup.string().required("Please select ticket type"),
+    quantity: Yup.number()
+      .min(1, "Quantity must be at least 1")
+      .required("Quantity is required"),
+    usePoints: Yup.boolean(),
+  });
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -83,49 +63,82 @@ export default function TransactionPage() {
         </p>
       )}
 
-      <div className="mb-4">
-        <label className="block mb-2 font-medium">Ticket Type</label>
-        <select
-          className="border p-2 rounded w-full"
-          value={ticketTypeId}
-          onChange={(e) => setTicketTypeId(e.target.value)}
-        >
-          <option value="">Select ticket type</option>
-          {event.tickets?.map((ticket: any) => (
-            <option key={ticket.id} value={ticket.id}>
-              {ticket.name} - Rp {ticket.price.toLocaleString()}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-2 font-medium">Quantity</label>
-        <input
-          type="number"
-          min="1"
-          className="border p-2 rounded w-full"
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-        />
-      </div>
-
-      <label className="flex items-center gap-2 mb-4">
-        <input
-          type="checkbox"
-          checked={usePoints}
-          onChange={(e) => setUsePoints(e.target.checked)}
-        />
-        Use points
-      </label>
-
-      <button
-        onClick={handlePurchase}
-        disabled={loading || !ticketTypeId}
-        className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg shadow-md transition duration-200 disabled:opacity-50"
+      <Formik
+        initialValues={{ ticketTypeId: "", quantity: 1, usePoints: false }}
+        validationSchema={validationSchema}
+        onSubmit={async (values, { setSubmitting }) => {
+          try {
+            const transaction = await createTransaction({
+              eventId: String(eventId),
+              ...values,
+            });
+            alert("Transaction successful!");
+            router.push(`/payment/${transaction.id}`);
+          } catch (err: any) {
+            console.error(err);
+            alert(err?.response?.data?.message || "Something went wrong");
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
-        {loading ? "Processing..." : "Buy Now"}
-      </button>
+        {({ isSubmitting }) => (
+          <Form className="space-y-4">
+            {/* Ticket Type */}
+            <div>
+              <label className="block font-medium">Ticket Type</label>
+              <Field
+                as="select"
+                name="ticketTypeId"
+                className="border p-2 rounded w-full"
+              >
+                <option value="">Select ticket type</option>
+                {event.tickets?.map((ticket: any) => (
+                  <option key={ticket.id} value={ticket.id}>
+                    {ticket.name} - Rp {ticket.price.toLocaleString()}
+                  </option>
+                ))}
+              </Field>
+              <ErrorMessage
+                name="ticketTypeId"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <label className="block font-medium">Quantity</label>
+              <Field
+                type="number"
+                name="quantity"
+                min="1"
+                className="border p-2 rounded w-full"
+              />
+              <ErrorMessage
+                name="quantity"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            {/* Use Points */}
+            <label className="flex items-center gap-2">
+              <Field type="checkbox" name="usePoints" />
+              Use points
+            </label>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? "Processing..." : "Buy Now"}
+            </button>
+          </Form>
+        )}
+      </Formik>
     </div>
   );
 }
