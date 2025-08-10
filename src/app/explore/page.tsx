@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import debounce from "lodash/debounce";
 
 const LIMIT = 9;
@@ -17,7 +18,6 @@ export default function ExplorePage() {
   const [location, setLocation] = useState("");
   const [eventType, setEventType] = useState("");
 
-  // Fetch events function
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
@@ -41,7 +41,6 @@ export default function ExplorePage() {
     }
   }, [title, page, category, location, eventType]);
 
-  // Debounce function to update title and reset page
   const debouncedSetTitle = useMemo(
     () =>
       debounce((value: string) => {
@@ -51,26 +50,22 @@ export default function ExplorePage() {
     []
   );
 
-  // Handle input change, call debounce
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     debouncedSetTitle(e.target.value);
   };
 
-  // Whenever title (after debounce), page, or filters change, fetch events
   useEffect(() => {
     if (title.length === 0 || title.length >= 3) {
       fetchEvents();
     }
   }, [title, page, category, location, eventType, fetchEvents]);
 
-  // Cancel debounce on unmount
   useEffect(() => {
     return () => {
       debouncedSetTitle.cancel();
     };
   }, [debouncedSetTitle]);
 
-  // Handlers for other filters — reset page too
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCategory(e.target.value);
     setPage(1);
@@ -86,6 +81,19 @@ export default function ExplorePage() {
     setPage(1);
   };
 
+  // Ambil minPrice dari backend kalau ada, kalau nggak ada hitung manual
+  const getMinPrice = (event: any) => {
+    if (typeof event.minPrice === "number") {
+      return event.minPrice;
+    }
+    const tickets =
+      event.tickets ?? event.ticketTypes ?? event.ticket_types ?? [];
+    const prices = tickets
+      .map((t: any) => Number(t.price))
+      .filter((p: number) => !isNaN(p));
+    return prices.length > 0 ? Math.min(...prices) : null;
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6 text-center">
@@ -94,7 +102,7 @@ export default function ExplorePage() {
           Find the latest and trending events around you!
         </p>
 
-        {/* Search & Filter */}
+        {/* Filters */}
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
           <input
             type="text"
@@ -144,29 +152,44 @@ export default function ExplorePage() {
         <>
           <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {events.length > 0 ? (
-              events.map((event) => (
-                <div
-                  key={event.id}
-                  className="rounded-2xl overflow-hidden border border-gray-200 shadow hover:shadow-md transition bg-white"
-                >
-                  <Image
-                    src={event.image_url || "/placeholder.jpg"}
-                    alt={event.title}
-                    width={400}
-                    height={250}
-                    className="w-full h-[250px] object-cover"
-                  />
-                  <div className="p-4">
-                    <h2 className="font-bold text-lg text-gray-800">
-                      {event.title}
-                    </h2>
-                    <p className="text-sm text-gray-500">{event.location}</p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {new Date(event.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))
+              events.map((event) => {
+                const minPrice = getMinPrice(event);
+
+                return (
+                  <Link
+                    key={event.id}
+                    href={`/eventdetails/${event.id}`}
+                    className="block rounded-2xl overflow-hidden border border-gray-200 shadow hover:shadow-md transition bg-white group cursor-pointer relative"
+                  >
+                    <div className="relative">
+                      <Image
+                        src={event.image_url || "/placeholder.jpg"}
+                        alt={event.title}
+                        width={400}
+                        height={250}
+                        className="w-full h-[250px] object-cover"
+                      />
+                      {minPrice !== null && (
+                        <div className="absolute top-3 right-3 bg-black text-white px-3 py-1 rounded-full text-sm font-semibold shadow">
+                          {minPrice === 0
+                            ? "Free"
+                            : `From Rp ${minPrice.toLocaleString("id-ID")}`}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <h2 className="font-bold text-lg text-gray-800">
+                        {event.title}
+                      </h2>
+                      <p className="text-sm text-gray-500">{event.location}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {new Date(event.date).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })
             ) : (
               <p className="text-center col-span-full text-gray-500">
                 No events found.
