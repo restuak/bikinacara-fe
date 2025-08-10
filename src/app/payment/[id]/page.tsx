@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import useAuthStore from "@/store/useAuthStore";
-import { updatePaymentStatus } from "@/features/transaction/api/updateTransactionApi";
+// import { updatePaymentStatus } from "@/features/transaction/api/updateTransactionApi";
 
 type Transaction = {
   id: string;
@@ -89,13 +89,13 @@ export default function PaymentPage() {
       alert("Gagal mengunggah bukti pembayaran");
     }
 
-    try {
-      await updatePaymentStatus(transactionId, "PAID");
-      fetchTransaction();
-    } catch (err) {
-        console.error("Update failed", err);
-      alert("Gagal Update status pembayaran" + err);
-    }
+    // try {
+    //   await updatePaymentStatus(transactionId, "PAID");
+    //   fetchTransaction();
+    // } catch (err) {
+    //     console.error("Update failed", err);
+    //   alert("Gagal Update status pembayaran" + err);
+    // }
   };
 
   if (loading) return <p className="p-6">Loading...</p>;
