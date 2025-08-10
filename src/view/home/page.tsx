@@ -1,6 +1,3 @@
-
-import BrowseCategories from "@/components/browsecategories";
-
 import Navbar from "@/components/navbar";
 import BrowseCategories from "@/components/browsecategories";
 import Footer from "@/components/footer";
@@ -11,11 +8,11 @@ import ExploreCTA from "@/components/exploreCTA";
 export default function HomeView() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <ExploreCTA />
       <UpcomingEvents />
       <BrowseCategories />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
