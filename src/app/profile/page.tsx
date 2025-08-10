@@ -3,9 +3,16 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { UserCircle, Ticket, CalendarDays, DollarSign } from "lucide-react";
+import {
+  UserCircle,
+  Ticket,
+  CalendarDays,
+  DollarSign,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
 
-import { AttendeeStats } from "@/interface/attedee";
+import { AttendeeStats, PointsStats } from "@/interface/attedee";
 import { UserInfoAttendee } from "@/interface/attedee";
 
 const API_URL = "http://localhost:8080/api";
@@ -13,6 +20,7 @@ const API_URL = "http://localhost:8080/api";
 export default function AttendeeProfilePage() {
   const [stats, setStats] = useState<AttendeeStats | null>(null);
   const [user, setUser] = useState<UserInfoAttendee | null>(null);
+  const [points, setPoints] = useState<PointsStats | null>(null);
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -21,6 +29,7 @@ export default function AttendeeProfilePage() {
     if (!token) return;
     fetchUser();
     fetchStats();
+    fetchPoints();
   }, [token]);
 
   const fetchStats = async () => {
@@ -42,6 +51,17 @@ export default function AttendeeProfilePage() {
       setUser(res.data);
     } catch (error) {
       console.error("Failed to fetch user", error);
+    }
+  };
+
+  const fetchPoints = async () => {
+    try {
+      const res = await axios.get<PointsStats>(`${API_URL}/points/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPoints(res.data);
+    } catch (error) {
+      console.error("Failed to fetch points", error);
     }
   };
 
@@ -74,8 +94,10 @@ export default function AttendeeProfilePage() {
           <p className="text-[#a6a6a6] text-sm">{user.email}</p>
         </div>
       )}
-      <div className="container mx-auto grid grid-cols-2 sm:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+
+      {/* REFERRAL & TOTAL POINT */}
+      <div className="container mx-auto grid grid-cols-2 gap-6 mb-8">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <UserCircle className="w-8 h-8 text-purple-500" />
           <div>
             <p className="text-gray-500 text-sm">Referral Code</p>
@@ -84,7 +106,7 @@ export default function AttendeeProfilePage() {
             </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <DollarSign className="w-8 h-8 text-yellow-500" />
           <div>
             <p className="text-gray-500 text-sm">Point Balance</p>
@@ -95,8 +117,42 @@ export default function AttendeeProfilePage() {
         </div>
       </div>
 
+      {/* BREAKDOWN POINTS */}
+      {points && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
+            <DollarSign className="w-8 h-8 text-green-500" />
+            <div>
+              <p className="text-gray-500 text-sm">Active Points</p>
+              <p className="text-lg font-bold text-black">
+                {points.active.toLocaleString()} pts
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
+            <Clock className="w-8 h-8 text-red-500" />
+            <div>
+              <p className="text-gray-500 text-sm">Expired Points</p>
+              <p className="text-lg font-bold text-black">
+                {points.expired.toLocaleString()} pts
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
+            <CheckCircle className="w-8 h-8 text-blue-500" />
+            <div>
+              <p className="text-gray-500 text-sm">Redeemed Points</p>
+              <p className="text-lg font-bold text-black">
+                {points.redeemed.toLocaleString()} pts
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTHER STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <UserCircle className="w-8 h-8 text-[#FF471F]" />
           <div>
             <p className="text-gray-500 text-sm">Transactions</p>
@@ -105,7 +161,7 @@ export default function AttendeeProfilePage() {
             </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <CalendarDays className="w-8 h-8 text-[#FFD522]" />
           <div>
             <p className="text-gray-500 text-sm">Total Events</p>
@@ -114,7 +170,7 @@ export default function AttendeeProfilePage() {
             </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <Ticket className="w-8 h-8 text-[#5AC8FA]" />
           <div>
             <p className="text-gray-500 text-sm">Total Tickets</p>
@@ -123,7 +179,7 @@ export default function AttendeeProfilePage() {
             </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow border border-gray-200 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <DollarSign className="w-8 h-8 text-green-500" />
           <div>
             <p className="text-gray-500 text-sm">Total Spent</p>
@@ -134,7 +190,8 @@ export default function AttendeeProfilePage() {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
+      {/* SUMMARY CHART */}
+      <div className="bg-white p-6 rounded-xl shadow border">
         <h2 className="text-xl font-semibold mb-4 text-[#000000]">
           Summary Chart
         </h2>
