@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import useAuthStore from "@/store/useAuthStore";
+import { updatePaymentStatus } from "@/features/transaction/api/updateTransactionApi";
 
 type Transaction = {
   id: string;
@@ -71,7 +72,7 @@ export default function PaymentPage() {
     try {
       const res = await axios.patch(
         `${API_BASE}/api/transactions/${transactionId}/payment-proof`,
-        formData,
+        formData, 
         {
           headers: {
             Authorization: `Bearer ${user?.token}`,
@@ -87,17 +88,25 @@ export default function PaymentPage() {
       console.error("Upload failed", err);
       alert("Gagal mengunggah bukti pembayaran");
     }
+
+    try {
+      await updatePaymentStatus(transactionId, "PAID");
+      fetchTransaction();
+    } catch (err) {
+        console.error("Update failed", err);
+      alert("Gagal Update status pembayaran" + err);
+    }
   };
 
   if (loading) return <p className="p-6">Loading...</p>;
   if (!transaction) return <p className="p-6">Transaksi tidak ditemukan</p>;
 
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow mt-10">
-      <h1 className="text-2xl font-bold mb-4">Pembayaran</h1>
-
+      <h1 className="text-2xl font-bold mb-4">Pembayaran </h1>
       <p className="text-lg font-semibold">{transaction.event?.title ?? "-"}</p>
-
+      {/* <p>Transaction ID: {transactionId}</p>; */}
       <div className="mt-4 border rounded p-3">
         {(transaction.items ?? []).map((item, idx) => (
           <div key={idx} className="flex justify-between">
@@ -108,7 +117,6 @@ export default function PaymentPage() {
           </div>
         ))}
       </div>
-
       <div className="mt-4 border-t pt-3">
         <p>Total: Rp {Number(transaction.totalPrice ?? 0).toLocaleString()}</p>
         {transaction.appliedDiscount > 0 && (
@@ -121,7 +129,6 @@ export default function PaymentPage() {
           Bayar: Rp {Number(transaction.finalPrice ?? 0).toLocaleString()}
         </p>
       </div>
-
       <div className="mt-4">
         <span className="font-bold">Status: </span>
         <span
@@ -136,7 +143,6 @@ export default function PaymentPage() {
           {transaction.paymentStatus}
         </span>
       </div>
-
       {transaction.paymentStatus === "PENDING" && (
         <div className="mt-4">
           <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -148,7 +154,6 @@ export default function PaymentPage() {
           </button>
         </div>
       )}
-
       {transaction.paymentProofUrl && (
         <div className="mt-4">
           <p className="font-medium">Bukti pembayaran:</p>
