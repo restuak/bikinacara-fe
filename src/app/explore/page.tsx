@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import debounce from "lodash/debounce";
@@ -8,13 +9,16 @@ import debounce from "lodash/debounce";
 const LIMIT = 9;
 
 export default function ExplorePage() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category") || "";
+
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(initialCategory);
   const [location, setLocation] = useState("");
   const [eventType, setEventType] = useState("");
 
@@ -78,14 +82,12 @@ export default function ExplorePage() {
     }
   }, [title, page, category, location, eventType, fetchEvents]);
 
-  // Cleanup debounce
   useEffect(() => {
     return () => {
       debouncedSetFilter.cancel();
     };
   }, [debouncedSetFilter]);
 
-  // Ambil minPrice dari backend kalau ada, kalau nggak ada hitung manual
   const getMinPrice = (event: any) => {
     if (typeof event.minPrice === "number") {
       return event.minPrice;
@@ -158,7 +160,6 @@ export default function ExplorePage() {
             {events.length > 0 ? (
               events.map((event) => {
                 const minPrice = getMinPrice(event);
-
                 return (
                   <Link
                     key={event.id}
@@ -181,7 +182,6 @@ export default function ExplorePage() {
                         </div>
                       )}
                     </div>
-
                     <div className="p-4">
                       <h2 className="font-bold text-lg text-gray-800">
                         {event.title}
