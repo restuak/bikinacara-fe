@@ -41,38 +41,26 @@ export default function ExplorePage() {
     }
   }, [title, page, category, location, eventType]);
 
-  const debouncedSetTitle = useMemo(
+  const debouncedSetFilter = useMemo(
     () =>
-      debounce((value: string) => {
-        setTitle(value);
+      debounce((key: "title" | "location", value: string) => {
+        if (key === "title") setTitle(value);
+        if (key === "location") setLocation(value);
         setPage(1);
       }, 500),
     []
   );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSetTitle(e.target.value);
-  };
-
-  useEffect(() => {
-    if (title.length === 0 || title.length >= 3) {
-      fetchEvents();
-    }
-  }, [title, page, category, location, eventType, fetchEvents]);
-
-  useEffect(() => {
-    return () => {
-      debouncedSetTitle.cancel();
-    };
-  }, [debouncedSetTitle]);
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCategory(e.target.value);
-    setPage(1);
+    debouncedSetFilter("title", e.target.value);
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocation(e.target.value);
+    debouncedSetFilter("location", e.target.value);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategory(e.target.value);
     setPage(1);
   };
 
@@ -80,6 +68,22 @@ export default function ExplorePage() {
     setEventType(e.target.value);
     setPage(1);
   };
+
+  useEffect(() => {
+    if (
+      (title.length === 0 || title.length >= 3) &&
+      (location.length === 0 || location.length >= 3)
+    ) {
+      fetchEvents();
+    }
+  }, [title, page, category, location, eventType, fetchEvents]);
+
+  // Cleanup debounce
+  useEffect(() => {
+    return () => {
+      debouncedSetFilter.cancel();
+    };
+  }, [debouncedSetFilter]);
 
   // Ambil minPrice dari backend kalau ada, kalau nggak ada hitung manual
   const getMinPrice = (event: any) => {
@@ -129,7 +133,7 @@ export default function ExplorePage() {
           <input
             type="text"
             placeholder="Location..."
-            value={location}
+            defaultValue={location}
             onChange={handleLocationChange}
             className="px-4 py-2 border border-gray-300 rounded-md"
           />
