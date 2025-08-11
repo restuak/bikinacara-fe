@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import EventReviews from "@/components/eventreviews";
 
 type Event = {
   id: string;
@@ -87,7 +88,9 @@ const EventDetailPage = () => {
       >
         Buy Tickets
       </button>
-    </div>
+
+    <EventReviews eventId={event.id} />
+  </div>
   );
 };
 

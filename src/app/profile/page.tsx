@@ -155,7 +155,7 @@ export default function AttendeeProfilePage() {
         <div className="bg-white p-4 rounded-xl shadow border flex items-center gap-4">
           <UserCircle className="w-8 h-8 text-[#FF471F]" />
           <div>
-            <p className="text-gray-500 text-sm">Transactions</p>
+            <p className="text-gray-500 text-sm">Success Transactions</p>
             <p className="text-lg font-bold text-black">
               {stats?.transactionsCount ?? "-"}
             </p>
