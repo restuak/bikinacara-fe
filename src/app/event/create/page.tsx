@@ -3,23 +3,16 @@
 import { useState } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import ForbiddenPage from "@/app/forbidden/page";
-import PromoSection from "@/components/promotion/promosection";
 import {
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
   FaTag,
   FaImage,
-  FaTicketAlt,
-  FaMoneyBillAlt,
 } from "react-icons/fa";
 
 export default function CreateEventPage() {
   const { user } = useAuthStore();
-
-  if (!user?.token) {
-    return <ForbiddenPage />;
-  }
 
   const [form, setForm] = useState({
     title: "",
@@ -27,16 +20,33 @@ export default function CreateEventPage() {
     date: "",
     time: "",
     location: "",
-    eventType: "concert",
+    eventType: "FREE", // FREE / PAID
     eventCategory: "EDUCATION",
-    ticketType: "free",
-    ticketPrice: 0,
     totalSeats: 0,
+  });
+
+  const [ticketTypes, setTicketTypes] = useState([
+    { name: "", price: 0, quota: 0 },
+  ]);
+
+  const [promotion, setPromotion] = useState({
+    type: "VOUCHER",
+    value: 0,
+    valueType: "PERCENTAGE",
+    usageLimit: 0,
+    startDate: "",
+    endDate: "",
+    voucherCode: "",
   });
 
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  if (!user?.token) {
+    return <ForbiddenPage />;
+  }
+
+  // Handle perubahan input form event
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -45,11 +55,28 @@ export default function CreateEventPage() {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]:
-        name === "ticketPrice" || name === "totalSeats" ? Number(value) : value,
+      [name]: name === "totalSeats" ? Number(value) : value,
     }));
   };
 
+  // Handle perubahan ticket types
+  const handleTicketTypeChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    setTicketTypes((prev) =>
+      prev.map((ticket, i) =>
+        i === index ? { ...ticket, [field]: value } : ticket
+      )
+    );
+  };
+
+  const handleAddTicketType = () => {
+    setTicketTypes((prev) => [...prev, { name: "", price: 0, quota: 0 }]);
+  };
+
+  // Upload gambar
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -58,35 +85,92 @@ export default function CreateEventPage() {
     }
   };
 
+  const handlePromotionChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setPromotion((prev) => ({
+      ...prev,
+      [name]: name === "value" || name === "usageLimit" ? Number(value) : value,
+    }));
+  };
+
+  // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("date", new Date(form.date).toISOString());
-    formData.append("time", new Date(`1970-01-01T${form.time}`).toISOString());
-    formData.append("location", form.location);
-    formData.append("eventCategory", form.eventCategory);
-    formData.append("totalSeats", String(form.totalSeats));
-    formData.append("eventType", form.ticketType.toUpperCase());
-    formData.append("ticketPrice", String(form.ticketPrice));
-    formData.append("organizerId", user.id);
+    try {
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("date", form.date);
+      formData.append("time", form.time);
+      formData.append("location", form.location);
+      formData.append("eventCategory", form.eventCategory.toUpperCase());
+      formData.append("eventType", form.eventType.toUpperCase());
+      formData.append("totalSeats", String(form.totalSeats));
+      formData.append("organizerId", user.id);
 
-    if (image) {
-      formData.append("image", image);
+      if (image) {
+        formData.append("image", image);
+      }
+
+      // 1️⃣ Create Event
+      const res = await fetch("http://localhost:8080/api/events", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: formData,
+      });
+
+      const eventData = await res.json();
+      if (!res.ok)
+        throw new Error(eventData.message || "Failed to create event");
+
+      // 2️⃣ If event is PAID → create ticket types
+      if (form.eventType === "PAID") {
+        const ticketRes = await fetch(
+          `http://localhost:8080/api/events/${eventData.id}/tickets`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify({ tickets: ticketTypes }),
+          }
+        );
+
+        if (!ticketRes.ok) {
+          throw new Error("Failed to create ticket types");
+        }
+      }
+
+      // 3️⃣ Create promotion (kalau value > 0 atau voucherCode ada)
+      if (promotion.value > 0 || promotion.voucherCode.trim() !== "") {
+        const promoRes = await fetch(
+          `http://localhost:8080/api/events/${eventData.id}/promotions`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify(promotion),
+          }
+        );
+
+        if (!promoRes.ok) {
+          throw new Error("Failed to create promotion");
+        }
+      }
+
+      alert("Event created successfully!");
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Something went wrong");
     }
-
-    const res = await fetch("http://localhost:8080/api/events", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${user.token}`, 
-      },
-      body: formData,
-    });
-
-    const data = await res.json();
-    console.log(data);
   };
 
   return (
@@ -107,7 +191,7 @@ export default function CreateEventPage() {
           />
         </div>
 
-        {/* Upload Picture */}
+        {/* Upload Banner */}
         <div>
           <label className="block mb-1 font-medium flex items-center gap-2">
             <FaImage /> Upload Banner
@@ -139,52 +223,6 @@ export default function CreateEventPage() {
             placeholder="Event details..."
           />
         </div>
-
-        {/* Ticket Type */}
-        <div>
-          <label className="block mb-1 font-medium flex items-center gap-2">
-            <FaTicketAlt /> Ticket Type
-          </label>
-          <div className="flex space-x-4">
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="ticketType"
-                value="free"
-                checked={form.ticketType === "free"}
-                onChange={handleChange}
-              />
-              Free
-            </label>
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="ticketType"
-                value="paid"
-                checked={form.ticketType === "paid"}
-                onChange={handleChange}
-              />
-              Paid
-            </label>
-          </div>
-        </div>
-
-        {/* Ticket Price (only if paid) */}
-        {form.ticketType === "paid" && (
-          <div>
-            <label className="block mb-1 font-medium flex items-center gap-2">
-              <FaMoneyBillAlt /> Ticket Price (in IDR)
-            </label>
-            <input
-              type="number"
-              name="ticketPrice"
-              value={form.ticketPrice}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              placeholder="e.g., 50000"
-            />
-          </div>
-        )}
 
         {/* Date */}
         <div>
@@ -251,6 +289,20 @@ export default function CreateEventPage() {
           </select>
         </div>
 
+        {/* Event Type */}
+        <div>
+          <label className="block mb-1 font-medium">Event Type</label>
+          <select
+            name="eventType"
+            value={form.eventType}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+          >
+            <option value="FREE">Free</option>
+            <option value="PAID">Paid</option>
+          </select>
+        </div>
+
         {/* Total Seats */}
         <div>
           <label className="block mb-1 font-medium">Total Seats</label>
@@ -264,8 +316,147 @@ export default function CreateEventPage() {
           />
         </div>
 
-        {/* Promo Section (optional) */}
-        <PromoSection />
+        {/* Ticket Types - Only if Paid */}
+        {form.eventType === "PAID" && (
+          <div>
+            <label className="block mb-1 font-medium">Ticket Types</label>
+            {ticketTypes.map((t, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={t.name}
+                  onChange={(e) =>
+                    handleTicketTypeChange(index, "name", e.target.value)
+                  }
+                  className="border rounded p-2 flex-1"
+                />
+                <input
+                  type="number"
+                  placeholder="Price"
+                  value={t.price}
+                  onChange={(e) =>
+                    handleTicketTypeChange(
+                      index,
+                      "price",
+                      Number(e.target.value)
+                    )
+                  }
+                  className="border rounded p-2 w-24"
+                />
+                <input
+                  type="number"
+                  placeholder="Quota"
+                  value={t.quota}
+                  onChange={(e) =>
+                    handleTicketTypeChange(
+                      index,
+                      "quota",
+                      Number(e.target.value)
+                    )
+                  }
+                  className="border rounded p-2 w-24"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddTicketType}
+              className="text-sm text-blue-500"
+            >
+              + Add Ticket Type
+            </button>
+          </div>
+        )}
+
+        {/* Promotion Section */}
+        <div className="space-y-4">
+          {/* Jenis Promo */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Jenis Promo
+            </span>
+            <select name="type" className="border p-2 w-full rounded">
+              <option value="VOUCHER">Voucher</option>
+              <option value="REFERRAL">Referral</option>
+              <option value="POINTS_REDEMPTION">Points Redemption</option>
+            </select>
+          </div>
+
+          {/* Tipe Nilai */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Tipe Nilai
+            </span>
+            <select name="valueType" className="border p-2 w-full rounded">
+              <option value="PERCENTAGE">Percentage</option>
+              <option value="FIXED">Fixed</option>
+            </select>
+          </div>
+
+          {/* Nilai Promo */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Nilai Promo
+            </span>
+            <input
+              type="number"
+              name="value"
+              placeholder="10"
+              className="border p-2 w-full rounded"
+            />
+          </div>
+
+          {/* Batas Penggunaan */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Batas Penggunaan
+            </span>
+            <input
+              type="number"
+              name="usageLimit"
+              placeholder="100"
+              className="border p-2 w-full rounded"
+            />
+          </div>
+
+          {/* Tanggal Mulai */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Tanggal Mulai
+            </span>
+            <input
+              type="date"
+              name="startDate"
+              className="border p-2 w-full rounded"
+            />
+          </div>
+
+          {/* Tanggal Berakhir */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Tanggal Berakhir
+            </span>
+            <input
+              type="date"
+              name="endDate"
+              className="border p-2 w-full rounded"
+            />
+          </div>
+
+          {/* Kode Voucher */}
+          <div className="relative">
+            <span className="absolute -top-2 left-2 bg-white px-1 text-xs text-gray-500">
+              Kode Voucher (Opsional)
+            </span>
+            <input
+              type="text"
+              name="voucherCode"
+              placeholder="Masukkan kode voucher"
+              className="border p-2 w-full rounded"
+            />
+          </div>
+        </div>
 
         {/* Submit */}
         <div className="text-center">

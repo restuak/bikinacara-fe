@@ -1,11 +1,42 @@
-"use client"
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const DatePromoForm = () => {
+type Promotion = {
+  type: string;
+  value: number;
+  valueType: string;
+  usageLimit: number;
+  startDate: string;
+  endDate: string;
+  voucherCode?: string;
+};
+
+interface DatePromoFormProps {
+  onChange: React.Dispatch<React.SetStateAction<Promotion[]>>;
+}
+
+const DatePromoForm: React.FC<DatePromoFormProps> = ({ onChange }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [discountPercent, setDiscountPercent] = useState("");
+
+  // setiap kali ada perubahan data, update parent
+  useEffect(() => {
+    if (startDate && endDate && discountPercent) {
+      onChange((prev) => [
+        ...prev.filter((p) => p.type !== "date"), // hapus promo lama tipe date
+        {
+          type: "date",
+          value: Number(discountPercent),
+          valueType: "percent",
+          usageLimit: 999, // bisa disesuaikan
+          startDate,
+          endDate,
+        },
+      ]);
+    }
+  }, [startDate, endDate, discountPercent, onChange]);
 
   return (
     <div className="p-4 border rounded-lg bg-gray-50 space-y-3">

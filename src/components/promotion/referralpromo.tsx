@@ -1,46 +1,40 @@
-"use client"
+import React, { useState } from "react";
 
-import { useState } from "react";
+type Promotion = {
+  type: string;
+  value: number;
+  valueType: string;
+  usageLimit: number;
+  startDate: string;
+  endDate: string;
+  voucherCode?: string;
+};
 
-const ReferralPromoForm = () => {
-  const [voucherCode, setVoucherCode] = useState("");
-  const [discountPercent, setDiscountPercent] = useState("");
-  const [maxUsers, setMaxUsers] = useState("");
+interface ReferralPromoFormProps {
+  onChange: React.Dispatch<React.SetStateAction<Promotion[]>>;
+}
+
+const ReferralPromoForm: React.FC<ReferralPromoFormProps> = ({ onChange }) => {
+  const [promo, setPromo] = useState<Promotion>({
+    type: "referral",
+    value: 0,
+    valueType: "percent",
+    usageLimit: 0,
+    startDate: "",
+    endDate: "",
+    voucherCode: "",
+  });
+
+  const handleSave = () => {
+    onChange((prev) => [...prev, promo]);
+  };
 
   return (
-    <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
-      <div>
-        <label className="block text-sm font-medium">Kode Voucher</label>
-        <input
-          type="text"
-          className="w-full border rounded p-2"
-          value={voucherCode}
-          onChange={(e) => setVoucherCode(e.target.value)}
-          placeholder="Contoh: REF123"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium">Diskon (%)</label>
-        <input
-          type="number"
-          className="w-full border rounded p-2"
-          value={discountPercent}
-          onChange={(e) => setDiscountPercent(e.target.value)}
-          placeholder="Contoh: 20"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium">Batas Pengguna</label>
-        <input
-          type="number"
-          className="w-full border rounded p-2"
-          value={maxUsers}
-          onChange={(e) => setMaxUsers(e.target.value)}
-          placeholder="Contoh: 100"
-        />
-      </div>
+    <div>
+      {/* form fields */}
+      <button type="button" onClick={handleSave}>
+        Simpan Promo Referral
+      </button>
     </div>
   );
 };
