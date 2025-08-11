@@ -14,3 +14,11 @@ export interface UserInfoAttendee {
   referralCode?: string;
   pointsBalance?: number;
 }
+
+export interface PointsStats {
+  active: number;  
+  redeemed: number;
+  expired: number;
+  total: number;
+
+}
