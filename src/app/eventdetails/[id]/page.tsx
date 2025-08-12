@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import EventReviews from "@/components/eventreviews";
 
@@ -73,12 +72,10 @@ const EventDetailPage = () => {
       </p>
 
       <div className="relative w-full h-64 rounded-lg overflow-hidden shadow-lg mb-6">
-        <Image
-          src={event.image_url || "/default.jpg"}
+        <img
+          src={event.image ?? "/default.jpg"}
           alt={event.title}
-          fill
-          className="object-cover"
-          priority
+          className="absolute inset-0 w-full h-full object-cover"
         />
       </div>
 
@@ -89,8 +86,8 @@ const EventDetailPage = () => {
         Buy Tickets
       </button>
 
-    <EventReviews eventId={event.id} />
-  </div>
+      <EventReviews eventId={event.id} />
+    </div>
   );
 };
 

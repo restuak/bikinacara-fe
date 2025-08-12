@@ -168,7 +168,7 @@ export default function ExplorePage() {
                   >
                     <div className="relative">
                       <Image
-                        src={event.image_url || "/placeholder.jpg"}
+                        src={event.image || "/placeholder.jpg"}
                         alt={event.title}
                         width={400}
                         height={250}
